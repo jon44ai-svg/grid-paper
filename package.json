@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "lint:strict": "oxlint -D all --react-plugin --jsx-a11y-plugin --react-perf-plugin --promise-plugin --import-plugin src",
+    "lint:strict": "oxlint --react-plugin --jsx-a11y-plugin --react-perf-plugin --promise-plugin --import-plugin --deny-warnings src",
     "doctor": "react-doctor --no-score --no-telemetry --lint --blocking warning .",
     "preview": "vite preview"
   },
@@ -24,6 +24,7 @@
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "oxlint": "^1.86.0",
+    "oxlint-tsgolint": "^7.0.2003",
     "react-doctor": "^0.9.14",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",

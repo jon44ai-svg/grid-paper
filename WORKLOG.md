@@ -136,3 +136,9 @@ Append new entries at the end of this file. Leave existing entries unchanged.
 
 **Realized:** React Doctor decreased from 19 warnings to 4. The remaining findings are one pnpm-hardening rule that does not recognize the current workspace configuration and three maintainability warnings for the intentionally large `Controls` and `Preview` components. The broadest Oxlint profile is too opinionated for this codebase without a large style refactor.
 
+## 2026-10-06 00:58 +0300 — Passed lint and build verification
+
+**Did:** Fixed strict Oxlint findings in modal accessibility, impure render-time filename generation, and synchronous playback state updates. Converted custom modal containers to semantic `<dialog>` elements. Added a practical strict Oxlint command with React, accessibility, performance, promise, and import plugins. `pnpm run lint`, `pnpm run lint:strict`, and `pnpm run build` pass.
+
+**Realized:** React Doctor remains at four warnings: one pnpm-hardening detection and three maintainability warnings for the large `Controls` and `Preview` components. These require either workspace-specific Doctor configuration or a larger component split, not lint correctness fixes.
+

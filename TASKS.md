@@ -20,8 +20,8 @@ Status values: `done`, `partial`, `pending`, `blocked`, `declined`.
 - [partial] Add admin OpenRouter settings: demo `admin` / `admin` browser-local configuration exists; production authentication and shared persistence remain.
 - [done] Keep the admin UI mobile-first.
 - [done] Add React Doctor dependency and command.
-- [partial] Add strict Oxlint command; the broadest `-D all` profile reports many style/opinion rules and type-aware execution still needs `oxlint-tsgolint`.
-- [partial] React Doctor now reports 4 warnings: 1 pnpm-hardening warning and 3 intentional maintainability warnings for large components. Accessibility, service-worker, and transition warnings were fixed.
+- [done] Add and pass the practical strict Oxlint command with React, accessibility, performance, promise, and import plugins. The separate broadest `-D all` profile remains intentionally unused because it enforces opinionated style rules.
+- [partial] React Doctor now reports 4 warnings: 1 pnpm-hardening warning and 3 maintainability warnings for large components. Accessibility, service-worker, modal, and transition warnings were fixed.
 - [pending] Make cleanup changes in atomic commits.
 
 ## Assistant-proposed feature ideas

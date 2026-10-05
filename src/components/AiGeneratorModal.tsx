@@ -57,17 +57,16 @@ export function AiGeneratorModal({ isOpen, onClose, onApplyScene, aiConfig }: Pr
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
+    <dialog open aria-labelledby="ai-generator-title" className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in m-0 max-w-none max-h-none w-full h-full">
       <div
         className="w-full max-w-lg bg-gray-900 border-t sm:border border-gray-800 sm:rounded-2xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="p-4 border-b border-gray-800 flex items-center justify-between bg-gradient-to-r from-purple-950/40 via-gray-900 to-red-950/30">
           <div className="flex items-center gap-2">
             <span className="text-xl">✨</span>
             <div>
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <h2 id="ai-generator-title" className="text-base font-bold text-white flex items-center gap-2">
                 OpenRouter AI Exam Roast
                 <span className="text-[10px] bg-purple-900/60 text-purple-300 px-2 py-0.5 rounded-full border border-purple-700/60 font-mono">
                   Auto-Scene
@@ -202,6 +201,6 @@ export function AiGeneratorModal({ isOpen, onClose, onApplyScene, aiConfig }: Pr
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   )
 }

@@ -48,7 +48,6 @@ export function useTypingPlayback({ textLength, typeSpeed, endPause }: Options) 
 
     let cancelled = false
     let index = 0
-    setCharIndex(0)
 
     const schedule = (fn: () => void, ms: number) => {
       timeoutRef.current = setTimeout(fn, ms)

@@ -36,17 +36,16 @@ export function MemePickerModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
+    <dialog open aria-labelledby="meme-vault-title" className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in m-0 max-w-none max-h-none w-full h-full">
       <div
         className="w-full max-w-xl bg-gray-900 border-t sm:border border-gray-800 sm:rounded-2xl shadow-2xl flex flex-col max-h-[85vh] sm:max-h-[80vh] overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
       >
         {/* Drawer Header */}
         <div className="p-4 border-b border-gray-800 flex items-center justify-between bg-gray-900/90">
           <div className="flex items-center gap-2">
             <span className="text-xl">🎭</span>
             <div>
-              <h2 className="text-base font-bold text-white">Meme & Sticker Vault</h2>
+              <h2 id="meme-vault-title" className="text-base font-bold text-white">Meme & Sticker Vault</h2>
               <p className="text-xs text-gray-400">
                 Exam roast templates, famous faces & custom sticker uploads
               </p>
@@ -208,6 +207,6 @@ export function MemePickerModal({
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   )
 }
