@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grid Paper Text & Typing GIF Generator</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts supporting English and Hebrew -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@600;800&family=Frank+Ruhl+Hofshi:wght@700;900&family=Heebo:wght@700;900&family=Miriam+Libre:wght@700&family=Press+Start+2P&family=Rubik+Glitch&family=Rubik+Mono+One&family=Rubik:wght@700;900&family=Silkscreen:wght@700&family=VT323&family=Varela+Round&display=swap" rel="stylesheet">
+  <!-- GifShot CDN for fast client-side GIF creation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.3.2/gifshot.min.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1f2937;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #4b5563;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #6b7280;
+    }
+
+    /* Pixel font crispness on canvas container */
+    .pixelated-canvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    
+    /* Font option classes */
+    .font-press-start { font-family: 'Press Start 2P', cursive; }
+    .font-silkscreen { font-family: 'Silkscreen', cursive; }
+    .font-rubik-glitch { font-family: 'Rubik Glitch', display; }
+    .font-rubik-mono { font-family: 'Rubik Mono One', sans-serif; }
+    .font-vt323 { font-family: 'VT323', monospace; }
+    .font-heebo { font-family: 'Heebo', sans-serif; }
+    .font-assistant { font-family: 'Assistant', sans-serif; }
+    .font-frank { font-family: 'Frank Ruhl Hofshi', serif; }
+    .font-miriam { font-family: 'Miriam Libre', sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen font-sans antialiased flex flex-col">
+
+  <!-- Top Navigation Header -->
+  <header class="bg-gray-900 border-b border-gray-800 px-4 py-3 sticky top-0 z-30 shadow-md">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3 rtl:space-x-reverse">
+        <div class="w-9 h-9 rounded-lg bg-red-600 flex items-center justify-center shadow-lg shadow-red-900/50 text-white font-black text-xl">
+          א
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-white leading-tight flex items-center gap-2">
+            Grid Text & GIF Generator
+            <span class="text-xs bg-red-900/80 text-red-300 font-mono px-2 py-0.5 rounded-full border border-red-700">HD GIF & PNG</span>
+          </h1>
+          <p class="text-xs text-gray-400">Create red retro text on graph paper & export typing animations</p>
+        </div>
+      </div>
+
+      <!-- Quick Template Presets -->
+      <div class="flex items-center gap-2 overflow-x-auto py-1">
+        <span class="text-xs text-gray-400 font-medium whitespace-nowrap"><i class="fa-solid fa-wand-magic-sparkles text-amber-400 mr-1"></i>Presets:</span>
+        <button id="preset-default" class="text-xs px-2.5 py-1 rounded bg-gray-800 hover:bg-gray-700 text-red-400 border border-gray-700 transition font-mono whitespace-nowrap">
+          "אוי ואבוי" (Original)
+        </button>
+        <button id="preset-english" class="text-xs px-2.5 py-1 rounded bg-gray-800 hover:bg-gray-700 text-blue-400 border border-gray-700 transition font-mono whitespace-nowrap">
+          "GAME OVER"
+        </button>
+        <button id="preset-hebrew-2" class="text-xs px-2.5 py-1 rounded bg-gray-800 hover:bg-gray-700 text-emerald-400 border border-gray-700 transition font-mono whitespace-nowrap">
+          "שלום עולם"
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Left Column: Controls & Settings -->
+    <div class="lg:col-span-5 flex flex-col gap-5">
+      
+      <!-- Text & Font Panel -->
+      <div class="bg-gray-900 rounded-xl p-4 border border-gray-800 shadow-sm space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+          <h2 class="text-sm font-semibold text-gray-200 flex items-center gap-2">
+            <i class="fa-solid fa-font text-red-500"></i> Text & Typography
+          </h2>
+          <span class="text-xs text-gray-500" id="dir-indicator">Auto RTL/LTR</span>
+        </div>
+
+        <!-- Text Input -->
+        <div>
+          <label for="text-input" class="block text-xs font-medium text-gray-400 mb-1">
+            Input Text (Hebrew / English):
+          </label>
+          <textarea id="text-input" rows="2" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-3 text-white text-lg font-mono focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition resize-y" placeholder="Type text here...">אוי ואבוי</textarea>
+        </div>
+
+        <!-- Font Family Selector -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="font-family" class="block text-xs font-medium text-gray-400 mb-1">Font Style:</label>
+            <select id="font-family" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2 text-xs text-white focus:border-red-500 outline-none">
+              <option value="'Press Start 2P', cursive">Press Start 2P (Pixel)</option>
+              <option value="'Rubik Mono One', sans-serif">Rubik Mono One (Bold)</option>
+              <option value="'Rubik Glitch', display">Rubik Glitch</option>
+              <option value="'Silkscreen', cursive">Silkscreen (Pixel)</option>
+              <option value="'VT323', monospace">VT323 (Retro Terminal)</option>
+              <option value="'Heebo', sans-serif" selected>Heebo Black (Clean Bold)</option>
+              <option value="'Assistant', sans-serif">Assistant Bold</option>
+              <option value="'Frank Ruhl Hofshi', serif">Frank Ruhl (Classic)</option>
+              <option value="'Miriam Libre', sans-serif">Miriam Libre</option>
+            </select>
+          </div>
+
+          <!-- Text Color Picker -->
+          <div>
+            <label for="text-color" class="block text-xs font-medium text-gray-400 mb-1">Text Color:</label>
+            <div class="flex items-center gap-2">
+              <input type="color" id="text-color" value="#E50914" class="w-9 h-9 rounded cursor-pointer border-0 bg-transparent">
+              <input type="text" id="text-color-hex" value="#E50914" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white uppercase font-mono">
+            </div>
+          </div>
+        </div>
+
+        <!-- Font Size & Spacing -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <div class="flex justify-between text-xs text-gray-400 mb-1">
+              <span>Font Size:</span>
+              <span id="font-size-val" class="text-white font-mono">48px</span>
+            </div>
+            <input type="range" id="font-size" min="20" max="100" value="48" class="w-full accent-red-500 bg-gray-800 rounded-lg h-2 cursor-pointer">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs text-gray-400 mb-1">
+              <span>Letter Spacing:</span>
+              <span id="letter-spacing-val" class="text-white font-mono">2px</span>
+            </div>
+            <input type="range" id="letter-spacing" min="-5" max="25" value="2" class="w-full accent-red-500 bg-gray-800 rounded-lg h-2 cursor-pointer">
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid & Paper Style Panel -->
+      <div class="bg-gray-900 rounded-xl p-4 border border-gray-800 shadow-sm space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+          <h2 class="text-sm font-semibold text-gray-200 flex items-center gap-2">
+            <i class="fa-solid fa-border-all text-blue-500"></i> Grid & Paper Styling
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <!-- Grid Cell Size -->
+          <div>
+            <div class="flex justify-between text-xs text-gray-400 mb-1">
+              <span>Grid Cell Size:</span>
+              <span id="grid-size-val" class="text-white font-mono">45px</span>
+            </div>
+            <input type="range" id="grid-size" min="15" max="80" value="45" class="w-full accent-blue-500 bg-gray-800 rounded-lg h-2 cursor-pointer">
+          </div>
+
+          <!-- Grid Line Thickness -->
+          <div>
+            <div class="flex justify-between text-xs text-gray-400 mb-1">
+              <span>Line Thickness:</span>
+              <span id="line-width-val" class="text-white font-mono">2.5px</span>
+            </div>
+            <input type="range" id="line-width" min="1" max="6" step="0.5" value="2.5" class="w-full accent-blue-500 bg-gray-800 rounded-lg h-2 cursor-pointer">
+          </div>
+        </div>
+
+        <!-- Color Settings -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="grid-color" class="block text-xs font-medium text-gray-400 mb-1">Grid Line Color:</label>
+            <div class="flex items-center gap-2">
+              <input type="color" id="grid-color" value="#111111" class="w-8 h-8 rounded cursor-pointer bg-transparent border-0">
+              <span class="text-xs text-gray-400 font-mono" id="grid-color-label">#111111</span>
+            </div>
+          </div>
+
+          <div>
+            <label for="paper-bg" class="block text-xs font-medium text-gray-400 mb-1">Paper Background:</label>
+            <div class="flex items-center gap-2">
+              <input type="color" id="paper-bg" value="#FFFFFF" class="w-8 h-8 rounded cursor-pointer bg-transparent border-0">
+              <select id="paper-theme" class="bg-gray-950 border border-gray-700 rounded text-xs px-2 py-1 text-white">
+                <option value="#FFFFFF">White</option>
+                <option value="#F8F6F0">Warm Notebook</option>
+                <option value="#E2E8F0">Blueprint Grey</option>
+                <option value="#1A202C">Dark Mode Grid</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Toggles: Rough Texture & Grid Snap -->
+        <div class="flex flex-wrap gap-4 pt-1">
+          <label class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+            <input type="checkbox" id="rough-grid" checked class="w-4 h-4 rounded text-red-600 bg-gray-800 border-gray-700 focus:ring-red-500">
+            <span>Rough/Scanned Texture</span>
+          </label>
+
+          <label class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+            <input type="checkbox" id="align-grid" checked class="w-4 h-4 rounded text-red-600 bg-gray-800 border-gray-700 focus:ring-red-500">
+            <span>Center & Align Text to Grid</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Typing Animation Panel -->
+      <div class="bg-gray-900 rounded-xl p-4 border border-gray-800 shadow-sm space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+          <h2 class="text-sm font-semibold text-gray-200 flex items-center gap-2">
+            <i class="fa-solid fa-play text-emerald-500"></i> Animation & Typing Settings
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <!-- Speed -->
+          <div>
+            <div class="flex justify-between text-xs text-gray-400 mb-1">
+              <span>Typing Speed:</span>
+              <span id="type-speed-val" class="text-white font-mono">180ms</span>
+            </div>
+            <input type="range" id="type-speed" min="50" max="600" step="10" value="180" class="w-full accent-emerald-500 bg-gray-800 rounded-lg h-2 cursor-pointer">
+          </div>
+
+          <!-- Pause at End -->
+          <div>
+            <div class="flex justify-between text-xs text-gray-400 mb-1">
+              <span>End Pause:</span>
+              <span id="end-pause-val" class="text-white font-mono">1.2s</span>
+            </div>
+            <input type="range" id="end-pause" min="0.2" max="3.0" step="0.2" value="1.2" class="w-full accent-emerald-500 bg-gray-800 rounded-lg h-2 cursor-pointer">
+          </div>
+        </div>
+
+        <!-- Cursor Option -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="cursor-style" class="block text-xs font-medium text-gray-400 mb-1">Cursor Style:</label>
+            <select id="cursor-style" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2 text-xs text-white">
+              <option value="none">None</option>
+              <option value="block" selected>Block ▋</option>
+              <option value="pipe">Line |</option>
+              <option value="underscore">Underscore _</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="canvas-size" class="block text-xs font-medium text-gray-400 mb-1">Aspect Ratio / Size:</label>
+            <select id="canvas-size" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2 text-xs text-white">
+              <option value="600x300" selected>Wide Banner (600 × 300)</option>
+              <option value="500x500">Square (500 × 500)</option>
+              <option value="700x250">Header Strip (700 × 250)</option>
+              <option value="400x200">Compact (400 × 200)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Interactive Canvas & Export Actions -->
+    <div class="lg:col-span-7 flex flex-col gap-5">
+      
+      <!-- Canvas Display Card -->
+      <div class="bg-gray-900 rounded-xl p-4 border border-gray-800 shadow-sm flex flex-col items-center">
+        
+        <!-- Controls Bar above Preview -->
+        <div class="w-full flex items-center justify-between border-b border-gray-800 pb-3 mb-4">
+          <div class="flex items-center gap-2">
+            <span class="inline-block w-3 h-3 rounded-full bg-red-500"></span>
+            <span class="inline-block w-3 h-3 rounded-full bg-amber-500"></span>
+            <span class="inline-block w-3 h-3 rounded-full bg-emerald-500"></span>
+            <span class="text-xs font-medium text-gray-400 ml-2">Live Canvas Preview</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button id="btn-play" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-medium transition shadow">
+              <i class="fa-solid fa-play text-xs"></i> Play Typing
+            </button>
+            <button id="btn-pause" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-medium transition border border-gray-700">
+              <i class="fa-solid fa-pause text-xs"></i> Pause
+            </button>
+          </div>
+        </div>
+
+        <!-- Canvas Container -->
+        <div class="w-full flex justify-center items-center overflow-x-auto p-2 bg-gray-950/80 rounded-xl border border-gray-800 min-h-[320px]">
+          <canvas id="preview-canvas" width="600" height="300" class="max-w-full rounded shadow-2xl border border-gray-700 bg-white pixelated-canvas"></canvas>
+        </div>
+
+        <!-- Playback Scrub & Frame Stats -->
+        <div class="w-full mt-3 flex items-center justify-between text-xs text-gray-400 px-1">
+          <div class="flex items-center gap-2">
+            <span id="char-count-badge" class="bg-gray-800 px-2 py-0.5 rounded text-gray-300 font-mono">0 / 8 chars</span>
+            <span id="fps-badge" class="bg-gray-800 px-2 py-0.5 rounded text-gray-300 font-mono">GIF FPS: 10</span>
+          </div>
+
+          <span class="text-gray-500 text-[11px]">Grid baseline matched</span>
+        </div>
+
+        <!-- Action Download Buttons -->
+        <div class="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
+          <!-- Download PNG Button -->
+          <button id="btn-download-png" class="w-full py-3 px-4 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold rounded-xl shadow-lg shadow-red-950/40 flex items-center justify-center gap-2.5 transition transform active:scale-95">
+            <i class="fa-solid fa-image text-lg"></i>
+            <span>Download PNG Image</span>
+          </button>
+
+          <!-- Download GIF Button -->
+          <button id="btn-download-gif" class="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-950/40 flex items-center justify-center gap-2.5 transition transform active:scale-95">
+            <i class="fa-solid fa-film text-lg"></i>
+            <span>Generate & Download GIF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- GIF Generation Status / Result Card -->
+      <div id="gif-result-card" class="hidden bg-gray-900 rounded-xl p-5 border border-emerald-800/60 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+          <h3 class="text-sm font-bold text-emerald-400 flex items-center gap-2">
+            <i class="fa-solid fa-circle-check text-emerald-400"></i> Generated Animated GIF
+          </h3>
+          <button id="btn-close-gif" class="text-gray-400 hover:text-white text-xs">
+            <i class="fa-solid fa-xmark text-base"></i>
+          </button>
+        </div>
+
+        <div id="gif-status-container" class="space-y-2">
+          <div class="flex justify-between text-xs text-gray-300">
+            <span id="gif-progress-label">Rendering frames...</span>
+            <span id="gif-progress-percent" class="font-mono text-emerald-400">0%</span>
+          </div>
+          <div class="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
+            <div id="gif-progress-bar" class="bg-emerald-500 h-full transition-all duration-150 w-0"></div>
+          </div>
+        </div>
+
+        <div id="gif-preview-box" class="hidden flex flex-col items-center gap-3 pt-2">
+          <img id="gif-output-img" class="max-w-full rounded border border-gray-700 shadow-md" alt="Animated Text GIF">
+          <a id="gif-download-link" download="grid-text-animation.gif" href="#" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition shadow-lg">
+            <i class="fa-solid fa-download"></i> Save GIF File
+          </a>
+        </div>
+      </div>
+
+      <!-- Instructions & Reference Note Card -->
+      <div class="bg-gray-900 rounded-xl p-4 border border-gray-800 text-xs text-gray-400 space-y-2">
+        <div class="font-semibold text-gray-300 flex items-center gap-1.5">
+          <i class="fa-solid fa-circle-info text-blue-400"></i> Features & Hebrew Support:
+        </div>
+        <ul class="list-disc list-inside space-y-1 text-gray-400 pl-1">
+          <li><strong>Bi-directional typing:</strong> Automatically types Right-to-Left for Hebrew (e.g., <span class="text-red-400 font-bold">אוי ואבוי</span>) and Left-to-Right for English.</li>
+          <li><strong>Scanned Texture:</strong> Recreates the realistic dark distressed line grid effect from math notebooks.</li>
+          <li><strong>Custom Font Engine:</strong> Combines Google web fonts with pixel canvas alignment for clean red lettering.</li>
+        </ul>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 border-t border-gray-800 py-3 px-4 text-center text-xs text-gray-500">
+    Grid Paper Text & Typing Animation Generator • Client-side rendering & GIF processing
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // DOM Elements
+      const canvas = document.getElementById('preview-canvas');
+      const ctx = canvas.getContext('2d');
+
+      const textInput = document.getElementById('text-input');
+      const fontFamilySelect = document.getElementById('font-family');
+      const textColorInput = document.getElementById('text-color');
+      const textColorHex = document.getElementById('text-color-hex');
+      const fontSizeInput = document.getElementById('font-size');
+      const fontSizeVal = document.getElementById('font-size-val');
+      const letterSpacingInput = document.getElementById('letter-spacing');
+      const letterSpacingVal = document.getElementById('letter-spacing-val');
+
+      const gridSizeInput = document.getElementById('grid-size');
+      const gridSizeVal = document.getElementById('grid-size-val');
+      const lineWidthInput = document.getElementById('line-width');
+      const lineWidthVal = document.getElementById('line-width-val');
+      const gridColorInput = document.getElementById('grid-color');
+      const gridColorLabel = document.getElementById('grid-color-label');
+      const paperBgInput = document.getElementById('paper-bg');
+      const paperThemeSelect = document.getElementById('paper-theme');
+      const roughGridCheckbox = document.getElementById('rough-grid');
+      const alignGridCheckbox = document.getElementById('align-grid');
+
+      const typeSpeedInput = document.getElementById('type-speed');
+      const typeSpeedVal = document.getElementById('type-speed-val');
+      const endPauseInput = document.getElementById('end-pause');
+      const endPauseVal = document.getElementById('end-pause-val');
+      const cursorStyleSelect = document.getElementById('cursor-style');
+      const canvasSizeSelect = document.getElementById('canvas-size');
+
+      const btnPlay = document.getElementById('btn-play');
+      const btnPause = document.getElementById('btn-pause');
+      const btnDownloadPng = document.getElementById('btn-download-png');
+      const btnDownloadGif = document.getElementById('btn-download-gif');
+      const dirIndicator = document.getElementById('dir-indicator');
+      const charCountBadge = document.getElementById('char-count-badge');
+
+      // GIF Result DOM
+      const gifResultCard = document.getElementById('gif-result-card');
+      const gifStatusContainer = document.getElementById('gif-status-container');
+      const gifProgressBar = document.getElementById('gif-progress-bar');
+      const gifProgressPercent = document.getElementById('gif-progress-percent');
+      const gifProgressLabel = document.getElementById('gif-progress-label');
+      const gifPreviewBox = document.getElementById('gif-preview-box');
+      const gifOutputImg = document.getElementById('gif-output-img');
+      const gifDownloadLink = document.getElementById('gif-download-link');
+      const btnCloseGif = document.getElementById('btnCloseGif') || document.getElementById('btn-close-gif');
+
+      // Presets
+      const presetDefault = document.getElementById('preset-default');
+      const presetEnglish = document.getElementById('preset-english');
+      const presetHebrew2 = document.getElementById('preset-hebrew-2');
+
+      // State Variables
+      let animationTimer = null;
+      let isPlaying = true;
+      let currentFrameCharIndex = 0;
+      let showCursorToggle = true;
+      let cursorBlinkTimer = null;
+
+      // Helper: Detect if string contains Hebrew or RTL characters
+      function isRTLText(str) {
+        const rtlCharPattern = /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
+        return rtlCharPattern.test(str);
+      }
+
+      // Sync color inputs
+      textColorInput.addEventListener('input', (e) => {
+        textColorHex.value = e.target.value.toUpperCase();
+        renderCurrentFrame();
+      });
+      textColorHex.addEventListener('input', (e) => {
+        if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+          textColorInput.value = e.target.value;
+          renderCurrentFrame();
+        }
+      });
+
+      gridColorInput.addEventListener('input', (e) => {
+        gridColorLabel.textContent = e.target.value.toUpperCase();
+        renderCurrentFrame();
+      });
+
+      paperThemeSelect.addEventListener('change', (e) => {
+        paperBgInput.value = e.target.value;
+        renderCurrentFrame();
+      });
+      paperBgInput.addEventListener('input', (e) => {
+        paperThemeSelect.value = e.target.value;
+        renderCurrentFrame();
+      });
+
+      // Dimension Resize
+      canvasSizeSelect.addEventListener('change', (e) => {
+        const [w, h] = e.target.value.split('x').map(Number);
+        canvas.width = w;
+        canvas.height = h;
+        renderCurrentFrame();
+      });
+
+      // Range labels update
+      fontSizeInput.addEventListener('input', (e) => {
+        fontSizeVal.textContent = e.target.value + 'px';
+        renderCurrentFrame();
+      });
+      letterSpacingInput.addEventListener('input', (e) => {
+        letterSpacingVal.textContent = e.target.value + 'px';
+        renderCurrentFrame();
+      });
+      gridSizeInput.addEventListener('input', (e) => {
+        gridSizeVal.textContent = e.target.value + 'px';
+        renderCurrentFrame();
+      });
+      lineWidthInput.addEventListener('input', (e) => {
+        lineWidthVal.textContent = e.target.value + 'px';
+        renderCurrentFrame();
+      });
+      typeSpeedInput.addEventListener('input', (e) => {
+        typeSpeedVal.textContent = e.target.value + 'ms';
+        restartAnimationLoop();
+      });
+      endPauseInput.addEventListener('input', (e) => {
+        endPauseVal.textContent = e.target.value + 's';
+      });
+
+      /**
+       * Draws the mathematical grid paper background with optional roughness texture
+       */
+      function drawGridPaper(targetCtx, width, height) {
+        const paperBg = paperBgInput.value;
+        const gridColor = gridColorInput.value;
+        const gridSize = parseInt(gridSizeInput.value, 10);
+        const lineWidth = parseFloat(lineWidthInput.value);
+        const isRough = roughGridCheckbox.checked;
+
+        // Fill background
+        targetCtx.fillStyle = paperBg;
+        targetCtx.fillRect(0, 0, width, height);
+
+        targetCtx.save();
+        targetCtx.strokeStyle = gridColor;
+        targetCtx.lineWidth = lineWidth;
+
+        if (isRough) {
+          // Draw slightly organic / distressed lines (mimicking scanned math paper)
+          // Vertical lines
+          for (let x = 0; x <= width; x += gridSize) {
+            targetCtx.beginPath();
+            targetCtx.globalAlpha = 0.85 + Math.random() * 0.15;
+            for (let y = 0; y <= height; y += 10) {
+              const jitter = (Math.random() - 0.5) * 0.6;
+              if (y === 0) targetCtx.moveTo(x + jitter, y);
+              else targetCtx.lineTo(x + jitter, y);
+            }
+            targetCtx.stroke();
+          }
+
+          // Horizontal lines
+          for (let y = 0; y <= height; y += gridSize) {
+            targetCtx.beginPath();
+            targetCtx.globalAlpha = 0.85 + Math.random() * 0.15;
+            for (let x = 0; x <= width; x += 10) {
+              const jitter = (Math.random() - 0.5) * 0.6;
+              if (x === 0) targetCtx.moveTo(x, y + jitter);
+              else targetCtx.lineTo(x, y + jitter);
+            }
+            targetCtx.stroke();
+          }
+        } else {
+          // Clean vector lines
+          targetCtx.globalAlpha = 0.9;
+          targetCtx.beginPath();
+          for (let x = 0; x <= width; x += gridSize) {
+            targetCtx.moveTo(x, 0);
+            targetCtx.lineTo(x, height);
+          }
+          for (let y = 0; y <= height; y += gridSize) {
+            targetCtx.moveTo(0, y);
+            targetCtx.lineTo(width, y);
+          }
+          targetCtx.stroke();
+        }
+
+        // Add subtle paper grain/vignette overlay
+        if (isRough) {
+          targetCtx.globalCompositeOperation = 'multiply';
+          targetCtx.fillStyle = 'rgba(0, 0, 0, 0.02)';
+          for (let i = 0; i < 400; i++) {
+            const rx = Math.random() * width;
+            const ry = Math.random() * height;
+            targetCtx.fillRect(rx, ry, 1.5, 1.5);
+          }
+        }
+
+        targetCtx.restore();
+      }
+
+      /**
+       * Render a frame of text onto the canvas at character count 'charCount'
+       */
+      function drawTextFrame(targetCtx, width, height, textToRender, charCount, drawCursor = false) {
+        // First draw grid
+        drawGridPaper(targetCtx, width, height);
+
+        const fullText = textToRender;
+        const currentSubText = fullText.substring(0, charCount);
+        const isRTL = isRTLText(fullText);
+
+        // Update direction badge in UI
+        if (dirIndicator) {
+          dirIndicator.textContent = isRTL ? 'Hebrew (RTL)' : 'English (LTR)';
+          dirIndicator.className = isRTL 
+            ? 'text-xs text-red-400 font-semibold bg-red-950/60 px-2 py-0.5 rounded border border-red-800'
+            : 'text-xs text-blue-400 font-semibold bg-blue-950/60 px-2 py-0.5 rounded border border-blue-800';
+        }
+
+        if (charCountBadge) {
+          charCountBadge.textContent = `${charCount} / ${fullText.length} chars`;
+        }
+
+        if (currentSubText.length === 0 && !drawCursor) return;
+
+        targetCtx.save();
+
+        const fontSize = parseInt(fontSizeInput.value, 10);
+        const fontFamily = fontFamilySelect.value;
+        const textColor = textColorInput.value;
+        const letterSpacing = parseInt(letterSpacingInput.value, 10);
+        const gridSize = parseInt(gridSizeInput.value, 10);
+        const shouldAlignGrid = alignGridCheckbox.checked;
+
+        targetCtx.font = `700 ${fontSize}px ${fontFamily}`;
+        targetCtx.fillStyle = textColor;
+        targetCtx.textBaseline = 'alphabetic';
+
+        // Split text by lines
+        const lines = fullText.split('\n');
+        const displayLines = currentSubText.split('\n');
+
+        // Calculate baseline placement
+        let startY;
+        if (shouldAlignGrid) {
+          // Align baseline precisely to a horizontal grid line
+          const centerY = height / 2;
+          const nearestGridY = Math.round(centerY / gridSize) * gridSize;
+          startY = nearestGridY;
+        } else {
+          startY = height / 2 + fontSize / 3;
+        }
+
+        const lineHeight = Math.max(fontSize * 1.2, gridSize);
+
+        // Render each line
+        displayLines.forEach((lineText, lineIdx) => {
+          const y = startY + (lineIdx - (displayLines.length - 1) / 2) * lineHeight;
+
+          // Measure total width of this line with letter spacing
+          let lineTotalWidth = 0;
+          const chars = Array.from(lineText);
+          chars.forEach((c) => {
+            lineTotalWidth += targetCtx.measureText(c).width + letterSpacing;
+          });
+          if (chars.length > 0) lineTotalWidth -= letterSpacing;
+
+          let startX;
+          if (isRTL) {
+            // For RTL text: align right side or center
+            startX = (width + lineTotalWidth) / 2;
+          } else {
+            // For LTR text: align left side from centered starting point
+            startX = (width - lineTotalWidth) / 2;
+          }
+
+          let currentX = startX;
+
+          // Render characters
+          chars.forEach((char) => {
+            const charWidth = targetCtx.measureText(char).width;
+
+            if (isRTL) {
+              // Draw character offset to left for RTL sequence
+              targetCtx.fillText(char, currentX - charWidth, y);
+              currentX -= (charWidth + letterSpacing);
+            } else {
+              targetCtx.fillText(char, currentX, y);
+              currentX += (charWidth + letterSpacing);
+            }
+          });
+
+          // Render blinking cursor at character head
+          if (drawCursor && lineIdx === displayLines.length - 1) {
+            const cursorType = cursorStyleSelect.value;
+            if (cursorType !== 'none') {
+              let cursorSymbol = '▋';
+              if (cursorType === 'pipe') cursorSymbol = '|';
+              if (cursorType === 'underscore') cursorSymbol = '_';
+
+              targetCtx.fillStyle = textColor;
+              targetCtx.globalAlpha = showCursorToggle ? 0.9 : 0.2;
+
+              if (isRTL) {
+                targetCtx.fillText(cursorSymbol, currentX - fontSize * 0.4, y);
+              } else {
+                targetCtx.fillText(cursorSymbol, currentX, y);
+              }
+            }
+          }
+        });
+
+        targetCtx.restore();
+      }
+
+      function renderCurrentFrame() {
+        const text = textInput.value || '';
+        drawTextFrame(ctx, canvas.width, canvas.height, text, currentFrameCharIndex, true);
+      }
+
+      function stepAnimation() {
+        const fullText = textInput.value || '';
+        
+        if (currentFrameCharIndex < fullText.length) {
+          currentFrameCharIndex++;
+          renderCurrentFrame();
+        } else {
+          // Reached end of text string
+          renderCurrentFrame();
+          const endPauseMs = parseFloat(endPauseInput.value) * 1000;
+          
+          clearInterval(animationTimer);
+          animationTimer = setTimeout(() => {
+            currentFrameCharIndex = 0;
+            if (isPlaying) {
+              restartAnimationLoop();
+            }
+          }, endPauseMs);
+        }
+      }
+
+      function restartAnimationLoop() {
+        if (animationTimer) {
+          clearInterval(animationTimer);
+          clearTimeout(animationTimer);
+        }
+        const speed = parseInt(typeSpeedInput.value, 10);
+        isPlaying = true;
+        animationTimer = setInterval(stepAnimation, speed);
+      }
+
+      function pauseAnimation() {
+        isPlaying = false;
+        if (animationTimer) {
+          clearInterval(animationTimer);
+          clearTimeout(animationTimer);
+        }
+      }
+
+      // Cursor Blinking
+      setInterval(() => {
+        showCursorToggle = !showCursorToggle;
+        if (!isPlaying || currentFrameCharIndex >= (textInput.value || '').length) {
+          renderCurrentFrame();
+        }
+      }, 500);
+
+      textInput.addEventListener('input', () => {
+        currentFrameCharIndex = 0;
+        renderCurrentFrame();
+      });
+
+      fontFamilySelect.addEventListener('change', renderCurrentFrame);
+      roughGridCheckbox.addEventListener('change', renderCurrentFrame);
+      alignGridCheckbox.addEventListener('change', renderCurrentFrame);
+      cursorStyleSelect.addEventListener('change', renderCurrentFrame);
+
+      btnPlay.addEventListener('click', () => {
+        currentFrameCharIndex = 0;
+        restartAnimationLoop();
+      });
+
+      btnPause.addEventListener('click', () => {
+        pauseAnimation();
+      });
+
+      // Quick Preset Buttons
+      presetDefault.addEventListener('click', () => {
+        textInput.value = 'אוי ואבוי';
+        fontFamilySelect.value = "'Heebo', sans-serif";
+        textColorInput.value = '#E50914';
+        textColorHex.value = '#E50914';
+        fontSizeInput.value = '52';
+        fontSizeVal.textContent = '52px';
+        gridSizeInput.value = '45';
+        gridSizeVal.textContent = '45px';
+        roughGridCheckbox.checked = true;
+        currentFrameCharIndex = 0;
+        restartAnimationLoop();
+      });
+
+      presetEnglish.addEventListener('click', () => {
+        textInput.value = 'GAME OVER';
+        fontFamilySelect.value = "'Press Start 2P', cursive";
+        textColorInput.value = '#E50914';
+        textColorHex.value = '#E50914';
+        fontSizeInput.value = '42';
+        fontSizeVal.textContent = '42px';
+        gridSizeInput.value = '40';
+        gridSizeVal.textContent = '40px';
+        currentFrameCharIndex = 0;
+        restartAnimationLoop();
+      });
+
+      presetHebrew2.addEventListener('click', () => {
+        textInput.value = 'שלום עולם!';
+        fontFamilySelect.value = "'Rubik Mono One', sans-serif";
+        textColorInput.value = '#E50914';
+        textColorHex.value = '#E50914';
+        fontSizeInput.value = '46';
+        fontSizeVal.textContent = '46px';
+        currentFrameCharIndex = 0;
+        restartAnimationLoop();
+      });
+
+      btnDownloadPng.addEventListener('click', () => {
+        // Create offscreen canvas for crisp snapshot
+        const snapshotCanvas = document.createElement('canvas');
+        snapshotCanvas.width = canvas.width;
+        snapshotCanvas.height = canvas.height;
+        const snapCtx = snapshotCanvas.getContext('2d');
+
+        const fullText = textInput.value || 'אוי ואבוי';
+        // Render full text onto snapshot without cursor
+        drawTextFrame(snapCtx, snapshotCanvas.width, snapshotCanvas.height, fullText, fullText.length, false);
+
+        // Download PNG link
+        const dataUrl = snapshotCanvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `grid-text-${Date.now()}.png`;
+        link.href = dataUrl;
+        link.click();
+      });
+
+      btnDownloadGif.addEventListener('click', async () => {
+        const fullText = textInput.value || 'אוי ואבוי';
+        if (!fullText.trim()) return;
+
+        // Open status modal
+        gifResultCard.classList.remove('hidden');
+        gifStatusContainer.classList.remove('hidden');
+        gifPreviewBox.classList.add('hidden');
+        gifProgressBar.style.width = '5%';
+        gifProgressPercent.textContent = '5%';
+        gifProgressLabel.textContent = 'Preparing animation frames...';
+
+        // Pause main playback while rendering
+        pauseAnimation();
+
+        // Offscreen canvas for frame capture
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        const tempCtx = tempCanvas.getContext('2d');
+
+        const frames = [];
+        const totalChars = fullText.length;
+
+        // Generate frame images character by character
+        for (let i = 0; i <= totalChars; i++) {
+          drawTextFrame(tempCtx, tempCanvas.width, tempCanvas.height, fullText, i, true);
+          frames.push(tempCanvas.toDataURL('image/png'));
+          
+          // Duplicate last frame to simulate end pause
+          if (i === totalChars) {
+            const pauseFrameCount = Math.max(3, Math.round(parseFloat(endPauseInput.value) * 5));
+            for (let p = 0; p < pauseFrameCount; p++) {
+              drawTextFrame(tempCtx, tempCanvas.width, tempCanvas.height, fullText, i, p % 2 === 0);
+              frames.push(tempCanvas.toDataURL('image/png'));
+            }
+          }
+        }
+
+        gifProgressBar.style.width = '35%';
+        gifProgressPercent.textContent = '35%';
+        gifProgressLabel.textContent = 'Encoding GIF animation...';
+
+        const frameInterval = parseFloat(typeSpeedInput.value) / 1000;
+
+        // Use GifShot to compile frames into GIF
+        if (typeof gifshot !== 'undefined') {
+          gifshot.createGIF({
+            images: frames,
+            interval: frameInterval,
+            gifWidth: canvas.width,
+            gifHeight: canvas.height,
+            numWorkers: 2,
+            progressCallback: (captureProgress) => {
+              const pct = Math.round(35 + captureProgress * 60);
+              gifProgressBar.style.width = pct + '%';
+              gifProgressPercent.textContent = pct + '%';
+            }
+          }, function (obj) {
+            if (!obj.error) {
+              const gifUrl = obj.image;
+              gifProgressBar.style.width = '100%';
+              gifProgressPercent.textContent = '100%';
+
+              setTimeout(() => {
+                gifStatusContainer.classList.add('hidden');
+                gifPreviewBox.classList.remove('hidden');
+                gifOutputImg.src = gifUrl;
+                gifDownloadLink.href = gifUrl;
+                gifDownloadLink.download = `grid-typing-${Date.now()}.gif`;
+              }, 300);
+            } else {
+              gifProgressLabel.textContent = 'GIF Encoding Error: ' + obj.error;
+            }
+          });
+        } else {
+          // Fallback if CDN blocked
+          gifProgressLabel.textContent = 'GIF Encoder library unavailable.';
+        }
+      });
+
+      if (btnCloseGif) {
+        btnCloseGif.addEventListener('click', () => {
+          gifResultCard.classList.add('hidden');
+        });
+      }
+
+      // Initial render & auto start
+      currentFrameCharIndex = 0;
+      renderCurrentFrame();
+      restartAnimationLoop();
+    });
+  </script>
+</body>
+</html>
