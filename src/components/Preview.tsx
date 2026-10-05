@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
-import type { GeneratorSettings } from '../types'
-import { drawTextFrame } from '../lib/drawText'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import type { DrawingStroke, GeneratorSettings } from '../types'
+import { drawTextFrame, preloadImages } from '../lib/drawText'
 import { createTypingGif } from '../lib/exportGif'
 import { downloadPng } from '../lib/exportPng'
 import { GifResult } from './GifResult'
@@ -11,16 +11,40 @@ type Props = {
   showCursor: boolean
   onPlay: () => void
   onPause: () => void
+  isDrawingMode?: boolean
+  drawingColor?: string
+  drawingWidth?: number
+  onAddStroke?: (stroke: DrawingStroke) => void
+  onClearDrawings?: () => void
+  onToggleDrawingMode?: (active: boolean) => void
 }
 
-export function Preview({ settings, charIndex, showCursor, onPlay, onPause }: Props) {
+export function Preview({
+  settings,
+  charIndex,
+  showCursor,
+  onPlay,
+  onPause,
+  isDrawingMode = false,
+  drawingColor = '#D91414',
+  drawingWidth = 3,
+  onAddStroke,
+  onClearDrawings,
+  onToggleDrawingMode,
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const isPointerDownRef = useRef(false)
+  const currentPointsRef = useRef<{ x: number; y: number }[]>([])
+
   const [gifOpen, setGifOpen] = useState(false)
   const [gifPercent, setGifPercent] = useState(0)
   const [gifLabel, setGifLabel] = useState('')
   const [gifUrl, setGifUrl] = useState<string | null>(null)
+  const [isExportingPng, setIsExportingPng] = useState(false)
 
+  // Redraw canvas whenever settings, playback state, or drawings change
   useEffect(() => {
+    let isCancelled = false
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
@@ -29,12 +53,127 @@ export function Preview({ settings, charIndex, showCursor, onPlay, onPause }: Pr
     canvas.width = settings.canvasSize.width
     canvas.height = settings.canvasSize.height
 
+    // Draw immediately with synchronous cache
     drawTextFrame(ctx, canvas.width, canvas.height, settings, {
       charCount: charIndex,
       drawCursor: true,
       showCursor,
     })
+
+    if (settings.images && settings.images.length > 0) {
+      preloadImages(settings.images).then((imageMap) => {
+        if (isCancelled || !canvasRef.current) return
+        const activeCtx = canvasRef.current.getContext('2d')
+        if (!activeCtx) return
+        drawTextFrame(activeCtx, canvasRef.current.width, canvasRef.current.height, settings, {
+          charCount: charIndex,
+          drawCursor: true,
+          showCursor,
+          imageMap,
+        })
+      })
+    }
+
+    return () => {
+      isCancelled = true
+    }
   }, [settings, charIndex, showCursor])
+
+  // Coordinate helper: translates client/touch coordinates directly to canvas pixel space
+  const getCanvasCoords = useCallback(
+    (clientX: number, clientY: number): { x: number; y: number } | null => {
+      const canvas = canvasRef.current
+      if (!canvas) return null
+      const rect = canvas.getBoundingClientRect()
+      if (rect.width === 0 || rect.height === 0) return null
+
+      const scaleX = canvas.width / rect.width
+      const scaleY = canvas.height / rect.height
+
+      const x = (clientX - rect.left) * scaleX
+      const y = (clientY - rect.top) * scaleY
+
+      return {
+        x: Math.max(0, Math.min(canvas.width, x)),
+        y: Math.max(0, Math.min(canvas.height, y)),
+      }
+    },
+    [],
+  )
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!isDrawingMode) return
+    e.preventDefault()
+    e.stopPropagation()
+    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+
+    const coords = getCanvasCoords(e.clientX, e.clientY)
+    if (!coords) return
+
+    isPointerDownRef.current = true
+    currentPointsRef.current = [coords]
+
+    // Draw immediate feedback dot on canvas
+    const canvas = canvasRef.current
+    const ctx = canvas?.getContext('2d')
+    if (ctx) {
+      ctx.save()
+      ctx.fillStyle = drawingColor
+      ctx.beginPath()
+      ctx.arc(coords.x, coords.y, drawingWidth / 2, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
+    }
+  }
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!isDrawingMode || !isPointerDownRef.current) return
+    e.preventDefault()
+    e.stopPropagation()
+
+    const coords = getCanvasCoords(e.clientX, e.clientY)
+    if (!coords) return
+
+    const pts = currentPointsRef.current
+    const prev = pts[pts.length - 1]
+    pts.push(coords)
+
+    // Direct incremental drawing stroke onto preview canvas for ultra smooth 60fps response
+    const canvas = canvasRef.current
+    const ctx = canvas?.getContext('2d')
+    if (ctx && prev) {
+      ctx.save()
+      ctx.strokeStyle = drawingColor
+      ctx.lineWidth = drawingWidth
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
+      ctx.beginPath()
+      ctx.moveTo(prev.x, prev.y)
+      ctx.lineTo(coords.x, coords.y)
+      ctx.stroke()
+      ctx.restore()
+    }
+  }
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!isDrawingMode || !isPointerDownRef.current) return
+    e.preventDefault()
+    try {
+      ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
+    } catch {
+      // ignore
+    }
+    isPointerDownRef.current = false
+
+    if (currentPointsRef.current.length > 0 && onAddStroke) {
+      onAddStroke({
+        points: [...currentPointsRef.current],
+        color: drawingColor,
+        width: drawingWidth,
+      })
+    }
+    currentPointsRef.current = []
+  }
 
   async function handleGif() {
     setGifOpen(true)
@@ -55,66 +194,151 @@ export function Preview({ settings, charIndex, showCursor, onPlay, onPause }: Pr
     setGifUrl(result.image)
   }
 
+  async function handlePng() {
+    setIsExportingPng(true)
+    try {
+      await downloadPng(settings)
+    } finally {
+      setIsExportingPng(false)
+    }
+  }
+
   return (
-    <div className="lg:col-span-7 flex flex-col gap-5">
-      <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 shadow-sm flex flex-col items-center">
-        <div className="w-full flex items-center justify-between border-b border-gray-800 pb-3 mb-4">
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-3 h-3 rounded-full bg-red-500" />
-            <span className="inline-block w-3 h-3 rounded-full bg-amber-500" />
-            <span className="inline-block w-3 h-3 rounded-full bg-emerald-500" />
-            <span className="text-xs font-medium text-gray-400 ml-2">Live Canvas Preview</span>
+    <div className="flex flex-col gap-3">
+      {/* Canvas Card */}
+      <div className="bg-gray-900 rounded-2xl p-3 sm:p-4 border border-gray-800 shadow-xl flex flex-col items-center">
+        {/* Header bar of preview */}
+        <div className="w-full flex items-center justify-between border-b border-gray-800/80 pb-2.5 mb-3 gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" />
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
+            <span className="text-xs font-semibold text-gray-300 ml-1 hidden xs:inline">
+              Sticker Canvas
+            </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Freehand scribble toggle on preview */}
+            {onToggleDrawingMode && (
+              <button
+                type="button"
+                onClick={() => onToggleDrawingMode(!isDrawingMode)}
+                className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 border shadow-sm ${
+                  isDrawingMode
+                    ? 'bg-red-600 text-white border-red-500 shadow-red-950/50'
+                    : 'bg-gray-800 text-gray-300 hover:text-white border-gray-700 hover:bg-gray-750'
+                }`}
+                title="Click or drag directly on the canvas to draw grader ink marks"
+              >
+                <span>{isDrawingMode ? '🛑 Done Pen' : '✏️ Draw'}</span>
+              </button>
+            )}
+
+            {settings.drawings.length > 0 && onClearDrawings && (
+              <button
+                type="button"
+                onClick={onClearDrawings}
+                className="text-[11px] px-2 py-1.5 rounded-lg bg-gray-800 hover:bg-red-950/40 text-gray-400 hover:text-red-400 border border-gray-700/80 transition"
+                title="Undo/Clear all hand drawn red marks"
+              >
+                Clear Pen
+              </button>
+            )}
+
             <button
               type="button"
-              className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition shadow"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-medium transition shadow active:scale-95"
               onClick={onPlay}
             >
-              Play Typing
+              ▶ Play
             </button>
             <button
               type="button"
-              className="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs px-3 py-1.5 rounded-lg font-medium transition border border-gray-700"
+              className="bg-gray-800 hover:bg-gray-750 text-gray-300 text-xs px-2.5 py-1.5 rounded-lg font-medium transition border border-gray-700"
               onClick={onPause}
             >
-              Pause
+              ⏸ Pause
             </button>
           </div>
         </div>
 
-        <div className="w-full flex justify-center items-center overflow-x-auto p-2 bg-gray-950/80 rounded-xl border border-gray-800 min-h-[320px]">
+        {/* Live Canvas Area with touch interaction */}
+        <div
+          className={`relative w-full flex justify-center items-center overflow-hidden p-2 sm:p-4 rounded-xl border transition-all ${
+            isDrawingMode
+              ? 'bg-red-950/15 border-red-500/50 ring-2 ring-red-500/20'
+              : 'bg-gray-950/90 border-gray-800/80'
+          }`}
+        >
+          {isDrawingMode && (
+            <div className="absolute top-2 left-2 z-10 bg-red-600/90 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow pointer-events-none animate-pulse">
+              ✏️ Pen active: Touch & draw red marks!
+            </div>
+          )}
+
           <canvas
             ref={canvasRef}
             width={settings.canvasSize.width}
             height={settings.canvasSize.height}
-            className="max-w-full rounded shadow-2xl border border-gray-700 bg-white"
-            style={{ imageRendering: 'pixelated' }}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+            className={`max-w-full rounded-lg shadow-2xl border bg-white select-none transition-shadow ${
+              isDrawingMode
+                ? 'cursor-crosshair border-red-500/80 touch-none'
+                : 'border-gray-700 cursor-default'
+            }`}
+            style={{
+              imageRendering: 'pixelated',
+              maxHeight: 'min(50vh, 420px)',
+              objectFit: 'contain',
+              touchAction: isDrawingMode ? 'none' : 'auto',
+            }}
           />
         </div>
 
-        <div className="w-full mt-3 flex items-center justify-between text-xs text-gray-400 px-1">
-          <span className="bg-gray-800 px-2 py-0.5 rounded text-gray-300 font-mono">
+        {/* Status indicator bar under canvas */}
+        <div className="w-full mt-2.5 flex items-center justify-between text-xs text-gray-400 px-1">
+          <span className="bg-gray-800/90 px-2 py-0.5 rounded text-gray-300 font-mono text-[11px]">
             {charIndex} / {settings.text.length} chars
           </span>
-          <span className="text-gray-500 text-[11px]">Grid baseline matched</span>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {settings.drawings.length > 0 && (
+              <span className="text-red-400 text-[10px] bg-red-950/60 px-1.5 py-0.5 rounded border border-red-800/60 font-mono">
+                {settings.drawings.length} doodle{settings.drawings.length > 1 ? 's' : ''}
+              </span>
+            )}
+            {settings.images.length > 0 && (
+              <span className="text-amber-400 text-[10px] bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-800/60 font-mono">
+                {settings.images.length} sticker{settings.images.length > 1 ? 's' : ''}
+              </span>
+            )}
+            <span className="text-emerald-400 text-[11px] bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/60 font-mono">
+              WhatsApp 512×512
+            </span>
+          </div>
         </div>
 
-        <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
+        {/* Action Export Buttons */}
+        <div className="w-full grid grid-cols-2 gap-2 sm:gap-3 mt-4">
           <button
             type="button"
-            className="w-full py-3 px-4 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold rounded-xl shadow-lg shadow-red-950/40 transition transform active:scale-95"
-            onClick={() => downloadPng(settings)}
+            disabled={isExportingPng}
+            className="w-full py-2.5 sm:py-3 px-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white text-xs sm:text-sm font-bold rounded-xl shadow-lg shadow-red-950/30 transition transform active:scale-95 flex items-center justify-center gap-1.5"
+            onClick={handlePng}
           >
-            Download PNG Image
+            <span>📥</span>
+            <span>{isExportingPng ? 'Saving...' : 'PNG Sticker'}</span>
           </button>
           <button
             type="button"
-            className="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-950/40 transition transform active:scale-95"
+            className="w-full py-2.5 sm:py-3 px-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs sm:text-sm font-bold rounded-xl shadow-lg shadow-emerald-950/30 transition transform active:scale-95 flex items-center justify-center gap-1.5"
             onClick={handleGif}
           >
-            Generate & Download GIF
+            <span>🎬</span>
+            <span>Animated GIF</span>
           </button>
         </div>
       </div>
@@ -126,22 +350,6 @@ export function Preview({ settings, charIndex, showCursor, onPlay, onPause }: Pr
         imageUrl={gifUrl}
         onClose={() => setGifOpen(false)}
       />
-
-      <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 text-xs text-gray-400 space-y-2">
-        <div className="font-semibold text-gray-300">Features & Hebrew Support:</div>
-        <ul className="list-disc list-inside space-y-1 pl-1">
-          <li>
-            <strong>Bi-directional typing:</strong> RTL for Hebrew (e.g.{' '}
-            <span className="text-red-400 font-bold">אוי ואבוי</span>) and LTR for English.
-          </li>
-          <li>
-            <strong>Scanned Texture:</strong> Distressed grid lines like a math notebook.
-          </li>
-          <li>
-            <strong>Custom Font Engine:</strong> Google fonts with canvas baseline alignment.
-          </li>
-        </ul>
-      </div>
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import gifshot from 'gifshot'
 import type { GeneratorSettings } from '../types'
-import { drawTextFrame } from './drawText'
+import { drawTextFrame, preloadImages } from './drawText'
 
 export type GifProgress = {
   percent: number
@@ -23,9 +23,20 @@ export async function createTypingGif(
 
   onProgress({ percent: 5, label: 'Preparing animation frames...' })
 
+  // Preload any inserted images before capturing frames
+  const imageMap = await preloadImages(settings.images)
+
+  // For WhatsApp sticker export, cap dimensions to 512x512 and keep file size under 500KB
+  const exportWidth = settings.whatsappOptimized
+    ? Math.min(512, settings.canvasSize.width)
+    : settings.canvasSize.width
+  const exportHeight = settings.whatsappOptimized
+    ? Math.min(512, settings.canvasSize.height)
+    : settings.canvasSize.height
+
   const canvas = document.createElement('canvas')
-  canvas.width = settings.canvasSize.width
-  canvas.height = settings.canvasSize.height
+  canvas.width = exportWidth
+  canvas.height = exportHeight
   const ctx = canvas.getContext('2d')
   if (!ctx) {
     return { image: '', error: 'Canvas unavailable' }
@@ -39,6 +50,7 @@ export async function createTypingGif(
       charCount: i,
       drawCursor: true,
       showCursor: true,
+      imageMap,
     })
     frames.push(canvas.toDataURL('image/png'))
 
@@ -49,6 +61,7 @@ export async function createTypingGif(
           charCount: i,
           drawCursor: true,
           showCursor: p % 2 === 0,
+          imageMap,
         })
         frames.push(canvas.toDataURL('image/png'))
       }
@@ -64,8 +77,8 @@ export async function createTypingGif(
       {
         images: frames,
         interval: frameInterval,
-        gifWidth: settings.canvasSize.width,
-        gifHeight: settings.canvasSize.height,
+        gifWidth: exportWidth,
+        gifHeight: exportHeight,
         numWorkers: 2,
         progressCallback: (captureProgress: number) => {
           const pct = Math.round(35 + captureProgress * 60)

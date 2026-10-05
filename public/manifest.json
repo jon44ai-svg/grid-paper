@@ -1,0 +1,25 @@
+{
+  "name": "StickerGrade - Uni Exam Stickers & Memes",
+  "short_name": "StickerGrade",
+  "description": "Generate hilarious university exam grader stickers, memes, and animated GIFs on realistic grid paper.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#030712",
+  "theme_color": "#030712",
+  "categories": ["education", "entertainment", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "48x48 72x72 96x96 128x128 192x192 256x256 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
