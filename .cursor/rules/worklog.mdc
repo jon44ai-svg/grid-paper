@@ -12,11 +12,13 @@ After a session changes the project, answers a question by investigating the rep
 Each entry:
 
 ```markdown
-## YYYY-MM-DD — Short title
+## YYYY-MM-DD HH:MM ±HHMM — Short title
 
 **Did:** What was done.
 
 **Realized:** What turned out to be true. Omit this heading when nothing new was learned.
 ```
+
+Use the local time when the entry is written, with its UTC offset.
 
 Add entries only after the last line. Leave earlier entries, and the header above the first entry, as they are.

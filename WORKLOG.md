@@ -2,7 +2,7 @@
 
 Append new entries at the end of this file. Leave existing entries unchanged.
 
-## 2026-10-05 — Read the generator and compared it to the reference
+## 2026-10-05 22:49 +0300 — Read the generator and compared it to the reference
 
 **Did:** Read `prompt.md`, `chat.md`, `image.png`, and `grid_paper_text_gif_generator.html`. Served the page and compared the live canvas to the reference image. The repo already had `README.md` plus commit `56685f5` (`feat(client): add initial POC from gemini`), which added the prompt, the chat note, the reference image, and the HTML file.
 
@@ -19,8 +19,14 @@ Append new entries at the end of this file. Leave existing entries unchanged.
 - The font menu says "Heebo Black", but the canvas sets weight `700`. Press Start 2P, Silkscreen, and VT323 do not cover Hebrew, so those choices fall back for Hebrew text.
 - The PNG is the preview resolution. The "GIF FPS: 10" badge never changes; frame delay follows the typing-speed slider.
 
-## 2026-10-05 — Started this worklog
+## 2026-10-05 23:01 +0300 — Started this worklog
 
 **Did:** Added `WORKLOG.md` and `.cursor/rules/worklog.mdc` so later sessions append what they do and realize here, then commit the log with the work.
 
 **Realized:** The generator files were already committed, so this log starts as its own commit rather than being folded into `56685f5`.
+
+## 2026-10-05 23:28 +0300 — Entries now carry a time
+
+**Did:** Changed the entry heading format to `YYYY-MM-DD HH:MM ±HHMM`. Stamped the two earlier headings: 22:49 from the start of the review session, and 23:01 from commit `b69bf38`.
+
+**Realized:** Those two entries were written with a date only, so the times were taken from the session clock and the commit, not from a clock stored in the log.
