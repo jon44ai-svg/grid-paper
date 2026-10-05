@@ -30,3 +30,19 @@ Append new entries at the end of this file. Leave existing entries unchanged.
 **Did:** Changed the entry heading format to `YYYY-MM-DD HH:MM ±HHMM`. Stamped the two earlier headings: 22:49 from the start of the review session, and 23:01 from commit `b69bf38`.
 
 **Realized:** Those two entries were written with a date only, so the times were taken from the session clock and the commit, not from a clock stored in the log.
+
+## 2026-10-05 23:37 +0300 — README filled; package audit clean
+
+**Did:** Wrote a real README (features, stack, pnpm scripts, Pages + Vercel deploy notes). Ran `pnpm audit`.
+
+**Realized:** `pnpm audit` reports no known vulnerabilities. `@types/node` and `typescript` have newer majors available but are not security findings. Font Awesome was planned to be dropped only as a ponytail CDN cut (unicode/text labels), not because of a vuln.
+
+## 2026-10-05 23:37 +0300 — Added .gitignore
+
+**Did:** Added Vite/React `.gitignore` (node_modules, dist, env, editor junk, `*:Zone.Identifier`).
+
+## 2026-10-05 23:41 +0300 — React rewrite + dual-deploy wiring
+
+**Did:** Ported the single-file generator to Vite + React + TS + Tailwind. Split canvas draw/export into `src/lib`, UI into Header/Controls/Preview/GifResult, playback into `useTypingPlayback`. Set `base: './'`, added GitHub Pages workflow, removed `grid_paper_text_gif_generator.html`. `pnpm build` succeeds.
+
+**Realized:** Vercel CLI is not installed locally and `gh` auth is invalid, so live Pages/Vercel publish still needs a dashboard (or re-auth) step after push. Font Awesome stayed out (unicode/text labels); CDN can come back if wanted.
