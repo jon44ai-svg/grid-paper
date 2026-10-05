@@ -1,0 +1,22 @@
+---
+description: Append what you did and what you realized to WORKLOG.md
+alwaysApply: true
+---
+
+# Worklog
+
+`WORKLOG.md` is the project record of work and findings. It is append-only.
+
+After a session changes the project, answers a question by investigating the repo, or reaches a realization about how the project behaves, append one entry at the end of `WORKLOG.md` before the session ends. If that work is committed, include the new entry in the same commit.
+
+Each entry:
+
+```markdown
+## YYYY-MM-DD — Short title
+
+**Did:** What was done.
+
+**Realized:** What turned out to be true. Omit this heading when nothing new was learned.
+```
+
+Add entries only after the last line. Leave earlier entries, and the header above the first entry, as they are.
