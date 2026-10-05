@@ -21,8 +21,8 @@ Status values: `done`, `partial`, `pending`, `blocked`, `declined`.
 - [done] Keep the admin UI mobile-first.
 - [done] Add React Doctor dependency and command.
 - [done] Add and pass the practical strict Oxlint command with React, accessibility, performance, promise, and import plugins. The separate broadest `-D all` profile remains intentionally unused because it enforces opinionated style rules.
-- [partial] React Doctor now reports 4 warnings: 1 pnpm-hardening warning and 3 maintainability warnings for large components. Accessibility, service-worker, modal, and transition warnings were fixed.
-- [pending] Make cleanup changes in atomic commits.
+- [partial] React Doctor now reports 1 pnpm-hardening warning. Controls and Preview were refactored; accessibility, service-worker, modal, transition, and component-size warnings were fixed. `trustPolicy: no-downgrade` was tested but conflicts with the existing transitive `semver@6.3.1` lockfile entry.
+- [done] Make cleanup changes in atomic commits.
 
 ## Assistant-proposed feature ideas
 

@@ -142,3 +142,9 @@ Append new entries at the end of this file. Leave existing entries unchanged.
 
 **Realized:** React Doctor remains at four warnings: one pnpm-hardening detection and three maintainability warnings for the large `Controls` and `Preview` components. These require either workspace-specific Doctor configuration or a larger component split, not lint correctness fixes.
 
+## 2026-10-06 01:05 +0300 — Refactored Controls and Preview
+
+**Did:** Replaced the monolithic controls implementation with a tab shell and focused text, drawing, meme, and AI panels. Extracted preview canvas rendering and pointer drawing into `usePreviewCanvas`. Converted the remaining modal UI concerns into semantic components. `pnpm run lint`, `pnpm run lint:strict`, `pnpm run build`, and `pnpm audit` pass.
+
+**Realized:** React Doctor now reports only the pnpm-hardening warning. Its recommended `trustPolicy: no-downgrade` setting rejects the existing transitive `semver@6.3.1` lockfile entry, so it was removed to keep normal pnpm install/build workflows working.
+

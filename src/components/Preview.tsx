@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useState } from 'react'
 import type { DrawingStroke, GeneratorSettings } from '../types'
-import { drawTextFrame, preloadImages } from '../lib/drawText'
 import { createTypingGif } from '../lib/exportGif'
 import { downloadPng } from '../lib/exportPng'
+import { usePreviewCanvas } from '../hooks/usePreviewCanvas'
 import { GifResult } from './GifResult'
 
 type Props = {
@@ -32,148 +32,21 @@ export function Preview({
   onClearDrawings,
   onToggleDrawingMode,
 }: Props) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const isPointerDownRef = useRef(false)
-  const currentPointsRef = useRef<{ x: number; y: number }[]>([])
-
   const [gifOpen, setGifOpen] = useState(false)
   const [gifPercent, setGifPercent] = useState(0)
   const [gifLabel, setGifLabel] = useState('')
   const [gifUrl, setGifUrl] = useState<string | null>(null)
   const [isExportingPng, setIsExportingPng] = useState(false)
 
-  // Redraw canvas whenever settings, playback state, or drawings change
-  useEffect(() => {
-    let isCancelled = false
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    canvas.width = settings.canvasSize.width
-    canvas.height = settings.canvasSize.height
-
-    // Draw immediately with synchronous cache
-    drawTextFrame(ctx, canvas.width, canvas.height, settings, {
-      charCount: charIndex,
-      drawCursor: true,
-      showCursor,
-    })
-
-    if (settings.images && settings.images.length > 0) {
-      preloadImages(settings.images).then((imageMap) => {
-        if (isCancelled || !canvasRef.current) return
-        const activeCtx = canvasRef.current.getContext('2d')
-        if (!activeCtx) return
-        drawTextFrame(activeCtx, canvasRef.current.width, canvasRef.current.height, settings, {
-          charCount: charIndex,
-          drawCursor: true,
-          showCursor,
-          imageMap,
-        })
-      })
-    }
-
-    return () => {
-      isCancelled = true
-    }
-  }, [settings, charIndex, showCursor])
-
-  // Coordinate helper: translates client/touch coordinates directly to canvas pixel space
-  const getCanvasCoords = useCallback(
-    (clientX: number, clientY: number): { x: number; y: number } | null => {
-      const canvas = canvasRef.current
-      if (!canvas) return null
-      const rect = canvas.getBoundingClientRect()
-      if (rect.width === 0 || rect.height === 0) return null
-
-      const scaleX = canvas.width / rect.width
-      const scaleY = canvas.height / rect.height
-
-      const x = (clientX - rect.left) * scaleX
-      const y = (clientY - rect.top) * scaleY
-
-      return {
-        x: Math.max(0, Math.min(canvas.width, x)),
-        y: Math.max(0, Math.min(canvas.height, y)),
-      }
-    },
-    [],
-  )
-
-  const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!isDrawingMode) return
-    e.preventDefault()
-    e.stopPropagation()
-    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
-
-    const coords = getCanvasCoords(e.clientX, e.clientY)
-    if (!coords) return
-
-    isPointerDownRef.current = true
-    currentPointsRef.current = [coords]
-
-    // Draw immediate feedback dot on canvas
-    const canvas = canvasRef.current
-    const ctx = canvas?.getContext('2d')
-    if (ctx) {
-      ctx.save()
-      ctx.fillStyle = drawingColor
-      ctx.beginPath()
-      ctx.arc(coords.x, coords.y, drawingWidth / 2, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.restore()
-    }
-  }
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!isDrawingMode || !isPointerDownRef.current) return
-    e.preventDefault()
-    e.stopPropagation()
-
-    const coords = getCanvasCoords(e.clientX, e.clientY)
-    if (!coords) return
-
-    const pts = currentPointsRef.current
-    const prev = pts[pts.length - 1]
-    pts.push(coords)
-
-    // Direct incremental drawing stroke onto preview canvas for ultra smooth 60fps response
-    const canvas = canvasRef.current
-    const ctx = canvas?.getContext('2d')
-    if (ctx && prev) {
-      ctx.save()
-      ctx.strokeStyle = drawingColor
-      ctx.lineWidth = drawingWidth
-      ctx.lineCap = 'round'
-      ctx.lineJoin = 'round'
-      ctx.beginPath()
-      ctx.moveTo(prev.x, prev.y)
-      ctx.lineTo(coords.x, coords.y)
-      ctx.stroke()
-      ctx.restore()
-    }
-  }
-
-  const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!isDrawingMode || !isPointerDownRef.current) return
-    e.preventDefault()
-    try {
-      ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
-    } catch {
-      // ignore
-    }
-    isPointerDownRef.current = false
-
-    if (currentPointsRef.current.length > 0 && onAddStroke) {
-      onAddStroke({
-        points: [...currentPointsRef.current],
-        color: drawingColor,
-        width: drawingWidth,
-      })
-    }
-    currentPointsRef.current = []
-  }
+  const { canvasRef, handlePointerDown, handlePointerMove, handlePointerUp } = usePreviewCanvas({
+    settings,
+    charIndex,
+    showCursor,
+    isDrawingMode,
+    drawingColor,
+    drawingWidth,
+    onAddStroke,
+  })
 
   async function handleGif() {
     setGifOpen(true)
