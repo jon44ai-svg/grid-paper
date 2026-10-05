@@ -166,6 +166,8 @@ export function Controls({
                   />
                   <input
                     type="text"
+                    id="text-color-value"
+                    aria-label="Text color hex value"
                     value={settings.textColor}
                     className="w-full bg-gray-950 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white uppercase font-mono"
                     onChange={(e) => {
@@ -424,14 +426,15 @@ export function Controls({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-400 mb-1">
+              <span className="block text-xs font-medium text-gray-400 mb-1">
                 Pen Ink Color:
-              </label>
+              </span>
               <div className="flex items-center gap-2">
                 {['#D91414', '#B91C1C', '#E11D48', '#1D4ED8', '#047857', '#111827'].map((c) => (
                   <button
                     key={c}
                     type="button"
+                    aria-label={`Use pen color ${c}`}
                     onClick={() => onChangeDrawingColor(c)}
                     className={`w-7 h-7 rounded-full transition transform active:scale-90 ${
                       drawingColor.toUpperCase() === c.toUpperCase()
@@ -648,6 +651,7 @@ function RangeField({
       </div>
       <input
         type="range"
+        aria-label={label}
         min={min}
         max={max}
         step={step}

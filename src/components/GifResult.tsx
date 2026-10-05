@@ -26,7 +26,7 @@ export function GifResult({ visible, percent, label, imageUrl, onClose }: Props)
           </div>
           <div className="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
             <div
-              className="bg-emerald-500 h-full transition-all duration-150"
+              className="bg-emerald-500 h-full transition-[width] duration-150"
               style={{ width: `${percent}%` }}
             />
           </div>

@@ -80,6 +80,7 @@ export function AiGeneratorModal({ isOpen, onClose, onApplyScene, aiConfig }: Pr
           </div>
           <button
             type="button"
+            aria-label="Close AI generator"
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white flex items-center justify-center text-sm transition"
           >
@@ -102,12 +103,14 @@ export function AiGeneratorModal({ isOpen, onClose, onApplyScene, aiConfig }: Pr
             <details className="mt-2">
               <summary className="cursor-pointer text-[11px] text-purple-400">Use my own OpenRouter key</summary>
               <input
+                id="personal-openrouter-key"
                 type="password"
                 value={userApiKey}
                 onChange={(e) => {
                   setUserApiKey(e.target.value)
                   localStorage.setItem('grid-paper-user-openrouter-key', e.target.value)
                 }}
+                aria-label="Optional personal OpenRouter key"
                 placeholder="Optional personal key"
                 className="mt-2 w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white font-mono"
               />
@@ -117,10 +120,11 @@ export function AiGeneratorModal({ isOpen, onClose, onApplyScene, aiConfig }: Pr
 
           {/* Theme Input */}
           <div className="space-y-2">
-            <label className="block text-xs font-semibold text-gray-300">
+            <label htmlFor="exam-theme" className="block text-xs font-semibold text-gray-300">
               Exam Theme or Topic:
             </label>
             <textarea
+              id="exam-theme"
               rows={2}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}

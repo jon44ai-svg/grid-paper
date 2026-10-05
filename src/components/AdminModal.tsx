@@ -39,7 +39,7 @@ export function AdminModal({ isOpen, config, onClose, onSave }: Props) {
             <h2 className="font-bold text-white">Admin AI Settings</h2>
             <p className="text-[11px] text-amber-400">Demo mode: changes are saved in this browser only.</p>
           </div>
-          <button type="button" onClick={onClose} className="text-gray-400 text-xl">×</button>
+          <button type="button" aria-label="Close admin settings" onClick={onClose} className="text-gray-400 text-xl">×</button>
         </div>
 
         {!authenticated ? (
@@ -51,17 +51,17 @@ export function AdminModal({ isOpen, config, onClose, onSave }: Props) {
           </div>
         ) : (
           <div className="space-y-4">
-            <label className="block text-xs text-gray-400">
+            <label htmlFor="admin-model" className="block text-xs text-gray-400">
               Model preset
-              <select value={draft.model} onChange={(e) => setDraft({ ...draft, model: e.target.value })} className="mt-1 w-full bg-gray-950 border border-gray-700 rounded-lg p-3 text-sm text-white">
+              <select id="admin-model" value={draft.model} onChange={(e) => setDraft({ ...draft, model: e.target.value })} className="mt-1 w-full bg-gray-950 border border-gray-700 rounded-lg p-3 text-sm text-white">
                 <option value="deepseek/deepseek-chat">DeepSeek Chat — witty</option>
                 <option value="google/gemini-2.0-flash-001">Gemini Flash — fast</option>
                 <option value="meta-llama/llama-3.3-70b-instruct">Llama 3.3 — creative</option>
               </select>
             </label>
-            <label className="block text-xs text-gray-400">
+            <label htmlFor="admin-prompt" className="block text-xs text-gray-400">
               Prompt instructions
-              <textarea value={draft.promptPrefix} onChange={(e) => setDraft({ ...draft, promptPrefix: e.target.value })} rows={4} className="mt-1 w-full bg-gray-950 border border-gray-700 rounded-lg p-3 text-sm text-white resize-y" />
+              <textarea id="admin-prompt" value={draft.promptPrefix} onChange={(e) => setDraft({ ...draft, promptPrefix: e.target.value })} rows={4} className="mt-1 w-full bg-gray-950 border border-gray-700 rounded-lg p-3 text-sm text-white resize-y" />
             </label>
             <label className="flex gap-2 items-center text-sm text-gray-300">
               <input type="checkbox" checked={draft.enabled} onChange={(e) => setDraft({ ...draft, enabled: e.target.checked })} />

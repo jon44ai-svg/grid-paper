@@ -2,11 +2,14 @@
   "name": "grid-paper",
   "private": true,
   "version": "0.0.0",
+  "packageManager": "pnpm@11.9.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "lint:strict": "oxlint -D all --react-plugin --jsx-a11y-plugin --react-perf-plugin --promise-plugin --import-plugin src",
+    "doctor": "react-doctor --no-score --no-telemetry --lint --blocking warning .",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -20,7 +23,8 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
-    "oxlint": "^1.81.0",
+    "oxlint": "^1.86.0",
+    "react-doctor": "^0.9.14",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
     "vite": "^8.3.0"

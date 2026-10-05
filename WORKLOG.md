@@ -112,3 +112,27 @@ Append new entries at the end of this file. Leave existing entries unchanged.
 
 **Realized:** The largest simplifications are deleting the unused duplicate `src/lib/openrouter.ts`, consolidating AI configuration, and removing demo admin authentication before production. The Vercel AI endpoint currently has no abuse protection, and the export is still GIF rather than WhatsApp animated WebP.
 
+## 2026-10-06 00:47 +0300 — Diagnosed pnpm store mismatch
+
+**Did:** Investigated why adding strict Oxlint tooling attempted to create `.pnpm-store/` in the project. No source changes were made.
+
+**Realized:** The configured global pnpm store at `/home/jon/.local/share/pnpm/store/v11` is owned by `root`, so pnpm could not write new tarballs as the current user and suggested a project-local store. The local store is only a permission workaround and should not be part of the project.
+
+## 2026-10-06 00:47 +0300 — Verification task results
+
+**Did:** Confirmed the verification tooling install completed. React Doctor scanned 26 files and reported 19 warnings, so its command exited with status 1. The attempted `oxlint-tsgolint` installation failed because the global pnpm store is not writable by the current user.
+
+**Realized:** React Doctor found concrete follow-up work in accessibility labels, service-worker response handling, oversized components, transition scope, and pnpm hardening. `pnpm audit` independently reports no known vulnerabilities.
+
+## 2026-10-06 00:48 +0300 — Manual task summary
+
+**Did:** Summarized the remaining manual setup required after verification.
+
+**Realized:** Deployment requires a Vercel environment variable and, if strict type-aware Oxlint is required, a one-time fix to ownership/configuration of the global pnpm store. GitHub Pages needs no secret setup and uses offline AI fallback.
+
+## 2026-10-06 00:55 +0300 — Fixed actionable React Doctor findings
+
+**Did:** Added accessible labels to controls and modal inputs, narrowed the GIF progress transition, hardened the service-worker response check, added pnpm package metadata/workspace hardening, updated the README, and added a task ledger. `pnpm run build` and `pnpm audit` pass.
+
+**Realized:** React Doctor decreased from 19 warnings to 4. The remaining findings are one pnpm-hardening rule that does not recognize the current workspace configuration and three maintainability warnings for the intentionally large `Controls` and `Preview` components. The broadest Oxlint profile is too opinionated for this codebase without a large style refactor.
+

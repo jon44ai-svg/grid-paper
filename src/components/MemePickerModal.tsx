@@ -54,6 +54,7 @@ export function MemePickerModal({
           </div>
           <button
             type="button"
+            aria-label="Close meme and sticker vault"
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white flex items-center justify-center text-sm transition"
           >
@@ -143,9 +144,9 @@ export function MemePickerModal({
         {activeTab === 'faces' && (
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <div>
-              <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">
+              <span className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">
                 Classic University Meme Faces:
-              </label>
+              </span>
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                 {BUILTIN_MEMES.map((meme: BuiltinSticker) => (
                   <button
@@ -171,10 +172,10 @@ export function MemePickerModal({
             </div>
 
             <div className="border-t border-gray-800 pt-4">
-              <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">
+              <span className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">
                 Upload Custom Photo / Sticker:
-              </label>
-              <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-700 hover:border-emerald-500 bg-gray-950/50 hover:bg-emerald-950/10 rounded-xl p-5 cursor-pointer transition">
+              </span>
+              <label htmlFor="custom-sticker-upload" className="flex flex-col items-center justify-center border-2 border-dashed border-gray-700 hover:border-emerald-500 bg-gray-950/50 hover:bg-emerald-950/10 rounded-xl p-5 cursor-pointer transition">
                 <span className="text-2xl mb-1">📸</span>
                 <span className="text-xs font-semibold text-gray-200">
                   Tap to upload PNG, JPEG or WebP
@@ -183,7 +184,9 @@ export function MemePickerModal({
                   Placed directly on the graph paper canvas
                 </span>
                 <input
+                  id="custom-sticker-upload"
                   type="file"
+                  aria-label="Upload custom photo or sticker"
                   accept="image/*"
                   className="hidden"
                   onChange={handleFileUpload}
